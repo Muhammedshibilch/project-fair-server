@@ -56,12 +56,53 @@ exports.getUserProjectsController = async (req,res)=>{
 // get all projects - authorised user
 exports.getAllProjectsController = async (req,res)=>{
     console.log("Inside getAllProjectsController");
+    const searchKey = req.query.search
+   
+
     try{
-        const allProjects = await projects.find()
+        const allProjects = await projects.find({
+            languages:{
+                $regex:searchKey,$options:"i"
+            }
+        })
         res.status(200).json(allProjects)
 
     }catch(err){
         res.status(401).json(err)
     }
     
+}
+// edit project - use findByIdUpdate in model
+exports.editProjectController = async(req,res)=>{
+    console.log("Inside editProjectController");
+    const {id}= req.params
+    const {title,languages,overview,github,website,projectImage}= req.body
+    const reUploadImageFileName = req.file?req.file.filename:projectImage
+    const userId = req.userId
+    console.log(id,title,languages,overview,github,website,reUploadImageFileName,userId);
+    try{
+        const updateProject = await projects.findByIdAndUpdate({_id:id},{
+            title,languages,overview,github,website,projectImage:reUploadImageFileName,userId
+        },{new:true})
+        await updateProject.save()
+        res.status(200).json(updateProject)
+    }catch(err){
+        res.status(401).json(err)
+    }
+    
+    
+}
+
+// remove project
+exports.removeProjectController = async (req,res)=>{
+    console.log("inside removeProjectController");
+    // get id of the project from req params
+    const {id} = req.params
+    // delete project
+    try {
+        const removeProject = await projects.findByIdAndDelete({_id:id})
+        res.status(200).json(removeProject)
+    } catch (err) {
+        res.status(401).json(err)
+    }
 }

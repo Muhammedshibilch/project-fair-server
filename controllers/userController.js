@@ -53,3 +53,23 @@ res.status(401).json(err)
 
 
 // profile updation
+exports.editUserController = async(req,res)=>{
+    console.log("Inside editUserController");
+    // get id of user from jwtmiddleware req.userId
+    const userId = req.userId
+    // multer will active in this route
+    // get text data from req.body,file data from req.file
+    const {username,email,password,github,linkedin,profilePic}= req.body
+    const uploadProfileImgFile = req.file?req.file.filename:profilePic
+    // update user - findbyid and update
+    try{
+        const updateUser= await users.findByIdAndUpdate({_id:userId},{
+            username,email,password,github,linkedin,profilePic:uploadProfileImgFile
+        },{new:true})
+        await updateUser.save()
+        res.status(200).json(updateUser)
+    }catch(err){
+        res.status(401).json(err)
+    }
+    
+}
